@@ -1,1 +1,1090 @@
 
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpotyCore - Discord Music Activity</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050608;
+      --surface: rgba(10, 14, 20, 0.78);
+      --surface-strong: rgba(15, 20, 30, 0.96);
+      --border: rgba(98, 255, 235, 0.14);
+      --text: #e9f5ff;
+      --muted: #9ab3c9;
+      --cyan: #00f0d8;
+      --cyan-soft: rgba(0, 240, 216, 0.18);
+      --green: #31f26f;
+      --shadow: 0 32px 80px rgba(0, 0, 0, 0.35);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, rgba(0, 240, 216, 0.12), transparent 24%),
+                  radial-gradient(circle at bottom right, rgba(49, 242, 111, 0.08), transparent 18%),
+                  linear-gradient(180deg, #090b0f 0%, #040506 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .page {
+      position: relative;
+      padding: 32px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px 0 28px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      font-size: 0.85rem;
+      color: #a7f9eb;
+    }
+
+    .brand span {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      box-shadow: 0 0 14px rgba(0, 240, 216, 0.5);
+    }
+
+    .nav {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .nav a, .nav button {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 180ms ease;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .nav a:hover, .nav button:hover {
+      color: var(--text);
+    }
+
+    /* MAIN PLAYER SECTION */
+    .player-section {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 32px;
+      padding: 24px 0 48px;
+    }
+
+    .now-playing {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .album-art {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      aspect-ratio: 1;
+      border-radius: 32px;
+      border: 1px solid rgba(98, 255, 235, 0.18);
+      background: linear-gradient(135deg, rgba(0, 240, 216, 0.15), rgba(49, 242, 111, 0.08));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .album-art::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0, 240, 216, 0.1), transparent 40%);
+      pointer-events: none;
+    }
+
+    .album-placeholder {
+      width: 80%;
+      height: 80%;
+      background: linear-gradient(135deg, #1a3a3a, #0f5555);
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .album-placeholder svg {
+      width: 60%;
+      height: 60%;
+      opacity: 0.6;
+    }
+
+    .song-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .song-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+
+    .song-artist {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      width: 35%;
+      transition: width 100ms linear;
+    }
+
+    .time-display {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .control-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid rgba(98, 255, 235, 0.18);
+      background: rgba(0, 240, 216, 0.1);
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 180ms ease;
+      font-size: 1.5rem;
+    }
+
+    .control-btn:hover {
+      background: rgba(0, 240, 216, 0.2);
+      box-shadow: 0 0 20px rgba(0, 240, 216, 0.3);
+      transform: scale(1.05);
+    }
+
+    .control-btn.play {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      border: none;
+      color: #000;
+      font-size: 1.8rem;
+    }
+
+    .control-btn.play:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 32px rgba(0, 240, 216, 0.4);
+    }
+
+    /* SIDEBAR - VOICE & USERS */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: fit-content;
+    }
+
+    .sidebar-card {
+      padding: 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(98, 255, 235, 0.12);
+      background: rgba(11, 16, 28, 0.82);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 24px 58px rgba(0, 0, 0, 0.22);
+    }
+
+    .sidebar-card h3 {
+      margin: 0 0 16px;
+      font-size: 1.1rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-card h3 .icon {
+      font-size: 1.3rem;
+    }
+
+    .voice-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(0, 240, 216, 0.08);
+      border-radius: 16px;
+      margin-bottom: 12px;
+    }
+
+    .voice-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 14px rgba(49, 242, 111, 0.6);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .voice-text {
+      flex: 1;
+    }
+
+    .voice-text strong {
+      display: block;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .voice-text span {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .users-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      transition: background 180ms ease;
+    }
+
+    .user-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 0.95rem;
+      color: #fff;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .user-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .listening-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(49, 242, 111, 0.2);
+      border-radius: 999px;
+      font-size: 0.75rem;
+      color: var(--green);
+      margin-top: 2px;
+    }
+
+    /* PLAYLIST SECTION */
+    .playlist-section {
+      padding: 40px 0;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 2rem;
+      color: #fff;
+    }
+
+    .section-heading .add-btn {
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(98, 255, 235, 0.18);
+      background: rgba(0, 240, 216, 0.14);
+      color: #e8ffff;
+      cursor: pointer;
+      transition: all 180ms ease;
+      font-weight: 600;
+    }
+
+    .section-heading .add-btn:hover {
+      background: rgba(0, 240, 216, 0.24);
+      box-shadow: 0 8px 24px rgba(0, 240, 216, 0.2);
+    }
+
+    .playlist {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .track-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(98, 255, 235, 0.08);
+      transition: all 180ms ease;
+      cursor: pointer;
+    }
+
+    .track-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(98, 255, 235, 0.18);
+    }
+
+    .track-item.active {
+      background: rgba(0, 240, 216, 0.12);
+      border-color: rgba(98, 255, 235, 0.3);
+    }
+
+    .track-number {
+      width: 36px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .track-item.active .track-number {
+      color: var(--cyan);
+    }
+
+    .track-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .track-name {
+      color: #fff;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .track-artist {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 0;
+    }
+
+    .track-duration {
+      color: var(--muted);
+      font-size: 0.9rem;
+      width: 40px;
+      text-align: right;
+    }
+
+    .track-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .track-action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 240, 216, 0.1);
+      color: var(--cyan);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 180ms ease;
+      font-size: 1rem;
+    }
+
+    .track-action-btn:hover {
+      background: rgba(0, 240, 216, 0.25);
+      transform: scale(1.1);
+    }
+
+    /* ADD SONG MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--surface-strong);
+      border: 1px solid rgba(98, 255, 235, 0.18);
+      border-radius: 28px;
+      padding: 32px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-content h2 {
+      margin: 0 0 24px;
+      font-size: 1.5rem;
+      color: #fff;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .form-group input {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(98, 255, 235, 0.18);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 1rem;
+      transition: all 180ms ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--cyan);
+      background: rgba(0, 240, 216, 0.1);
+      box-shadow: 0 0 12px rgba(0, 240, 216, 0.2);
+    }
+
+    .form-group input::placeholder {
+      color: var(--muted);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 180ms ease;
+      font-size: 1rem;
+    }
+
+    .modal-buttons .btn-submit {
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      color: #000;
+    }
+
+    .modal-buttons .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0, 240, 216, 0.3);
+    }
+
+    .modal-buttons .btn-cancel {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid rgba(98, 255, 235, 0.18);
+    }
+
+    .modal-buttons .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 28px 0 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .player-section {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .album-art {
+        max-width: 300px;
+        margin: 0 auto;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 20px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+
+      .section-heading {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .track-item {
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+      }
+
+      .track-duration,
+      .track-actions {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page {
+        padding: 16px;
+      }
+
+      .album-art {
+        max-width: 100%;
+      }
+
+      .control-btn {
+        width: 48px;
+        height: 48px;
+      }
+
+      .control-btn.play {
+        width: 56px;
+        height: 56px;
+      }
+
+      .song-title {
+        font-size: 1.4rem;
+      }
+
+      .modal-content {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <!-- HEADER -->
+    <header>
+      <div class="brand"><span></span>SpotyCore</div>
+      <nav class="nav">
+        <button onclick="toggleTheme()">🌙 Theme</button>
+        <button onclick="shareActivity()">📤 Share</button>
+      </nav>
+    </header>
+
+    <!-- MAIN PLAYER & SIDEBAR -->
+    <section class="player-section">
+      <!-- NOW PLAYING -->
+      <div class="now-playing">
+        <!-- Album Art -->
+        <div class="album-art">
+          <div class="album-placeholder">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+              <circle cx="50" cy="50" r="30" stroke="currentColor" stroke-width="2"/>
+              <circle cx="50" cy="50" r="15" fill="currentColor" opacity="0.5"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Song Info -->
+        <div class="song-info">
+          <h1 class="song-title" id="nowPlayingTitle">Neon Dreams</h1>
+          <p class="song-artist" id="nowPlayingArtist">SyntheticWave</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div>
+          <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="time-display">
+            <span id="currentTime">0:00</span>
+            <span id="duration">3:45</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button class="control-btn" onclick="previousTrack()" title="Vorheriger Track">⏮️</button>
+          <button class="control-btn" onclick="togglePlay()" title="Play/Pause">⏸️</button>
+          <button class="control-btn play" onclick="togglePlay()" title="Play/Pause">▶️</button>
+          <button class="control-btn" onclick="nextTrack()" title="Nächster Track">⏭️</button>
+          <button class="control-btn" onclick="toggleVolume()" title="Lautstärke">🔊</button>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <!-- Voice Channel Status -->
+        <div class="sidebar-card">
+          <h3><span class="icon">📞</span>Voice Channel</h3>
+          <div class="voice-status">
+            <div class="voice-indicator"></div>
+            <div class="voice-text">
+              <strong>Aktiv</strong>
+              <span>Discord Server</span>
+            </div>
+          </div>
+          <button class="section-heading add-btn" onclick="connectVoice()" style="width: 100%">Beitreten</button>
+        </div>
+
+        <!-- Online Users -->
+        <div class="sidebar-card">
+          <h3><span class="icon">👥</span>Online (<span id="userCount">3</span>)</h3>
+          <div class="users-list" id="usersList">
+            <div class="user-item">
+              <div class="user-avatar">BL</div>
+              <div class="user-info">
+                <p class="user-name">blockem31</p>
+                <p class="user-status">Hört zu</p>
+              </div>
+            </div>
+            <div class="user-item">
+              <div class="user-avatar">FR</div>
+              <div class="user-info">
+                <p class="user-name">Freund_1</p>
+                <p class="user-status">Hört zu</p>
+                <span class="listening-badge">🎵 Neon Dreams</span>
+              </div>
+            </div>
+            <div class="user-item">
+              <div class="user-avatar">FR</div>
+              <div class="user-info">
+                <p class="user-name">Freund_2</p>
+                <p class="user-status">Hört zu</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAYLIST SECTION -->
+    <section class="playlist-section">
+      <div class="section-heading">
+        <h2>🎵 Queue</h2>
+        <button class="add-btn" onclick="openAddSongModal()">+ Song hinzufügen</button>
+      </div>
+
+      <div class="playlist" id="playlist">
+        <div class="track-item active" onclick="playTrack(0)">
+          <div class="track-number">1</div>
+          <div class="track-details">
+            <p class="track-name">Neon Dreams</p>
+            <p class="track-artist">SyntheticWave</p>
+          </div>
+          <div class="track-duration">3:45</div>
+          <div class="track-actions">
+            <button class="track-action-btn" onclick="removeTrack(0)" title="Entfernen">✕</button>
+          </div>
+        </div>
+
+        <div class="track-item" onclick="playTrack(1)">
+          <div class="track-number">2</div>
+          <div class="track-details">
+            <p class="track-name">Digital Horizons</p>
+            <p class="track-artist">CyberPulse</p>
+          </div>
+          <div class="track-duration">4:12</div>
+          <div class="track-actions">
+            <button class="track-action-btn" onclick="removeTrack(1)" title="Entfernen">✕</button>
+          </div>
+        </div>
+
+        <div class="track-item" onclick="playTrack(2)">
+          <div class="track-number">3</div>
+          <div class="track-details">
+            <p class="track-name">Midnight Code</p>
+            <p class="track-artist">Neon Vibes</p>
+          </div>
+          <div class="track-duration">3:28</div>
+          <div class="track-actions">
+            <button class="track-action-btn" onclick="removeTrack(2)" title="Entfernen">✕</button>
+          </div>
+        </div>
+
+        <div class="track-item" onclick="playTrack(3)">
+          <div class="track-number">4</div>
+          <div class="track-details">
+            <p class="track-name">Cyber Paradise</p>
+            <p class="track-artist">SyntheticWave</p>
+          </div>
+          <div class="track-duration">4:05</div>
+          <div class="track-actions">
+            <button class="track-action-btn" onclick="removeTrack(3)" title="Entfernen">✕</button>
+          </div>
+        </div>
+
+        <div class="track-item" onclick="playTrack(4)">
+          <div class="track-number">5</div>
+          <div class="track-details">
+            <p class="track-name">Electric Soul</p>
+            <p class="track-artist">Pulse Collective</p>
+          </div>
+          <div class="track-duration">3:52</div>
+          <div class="track-actions">
+            <button class="track-action-btn" onclick="removeTrack(4)" title="Entfernen">✕</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL FOR ADDING SONGS -->
+    <div class="modal" id="addSongModal">
+      <div class="modal-content">
+        <h2>🎵 Song hinzufügen</h2>
+        <form onsubmit="addNewSong(event)">
+          <div class="form-group">
+            <label for="songName">Song Titel</label>
+            <input type="text" id="songName" placeholder="z.B. Neon Dreams" required>
+          </div>
+          <div class="form-group">
+            <label for="artistName">Künstler</label>
+            <input type="text" id="artistName" placeholder="z.B. SyntheticWave" required>
+          </div>
+          <div class="form-group">
+            <label for="songDuration">Dauer (MM:SS)</label>
+            <input type="text" id="songDuration" placeholder="z.B. 3:45" value="3:45" required>
+          </div>
+          <div class="modal-buttons">
+            <button type="submit" class="btn-submit">Hinzufügen</button>
+            <button type="button" class="btn-cancel" onclick="closeAddSongModal()">Abbrechen</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <span>🎵 SpotyCore — Musik mit Freunden in Discord</span>
+      <span>Made for Discord Music Activity</span>
+    </footer>
+  </main>
+
+  <script>
+    // STATE MANAGEMENT
+    let currentTrackIndex = 0;
+    let isPlaying = false;
+    let currentTime = 0;
+    let tracks = [
+      { title: 'Neon Dreams', artist: 'SyntheticWave', duration: 225 },
+      { title: 'Digital Horizons', artist: 'CyberPulse', duration: 252 },
+      { title: 'Midnight Code', artist: 'Neon Vibes', duration: 208 },
+      { title: 'Cyber Paradise', artist: 'SyntheticWave', duration: 245 },
+      { title: 'Electric Soul', artist: 'Pulse Collective', duration: 232 }
+    ];
+
+    // PLAYER FUNCTIONS
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      updatePlayButton();
+      simulatePlayback();
+    }
+
+    function updatePlayButton() {
+      const playBtn = document.querySelector('.control-btn.play');
+      playBtn.textContent = isPlaying ? '⏸️' : '▶️';
+    }
+
+    function nextTrack() {
+      currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+      currentTime = 0;
+      updateTrackDisplay();
+    }
+
+    function previousTrack() {
+      currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+      currentTime = 0;
+      updateTrackDisplay();
+    }
+
+    function playTrack(index) {
+      currentTrackIndex = index;
+      currentTime = 0;
+      isPlaying = true;
+      updatePlayButton();
+      updateTrackDisplay();
+      simulatePlayback();
+    }
+
+    function updateTrackDisplay() {
+      const track = tracks[currentTrackIndex];
+      document.getElementById('nowPlayingTitle').textContent = track.title;
+      document.getElementById('nowPlayingArtist').textContent = track.artist;
+      document.getElementById('duration').textContent = formatTime(track.duration);
+
+      // Update active track in playlist
+      document.querySelectorAll('.track-item').forEach((el, i) => {
+        el.classList.toggle('active', i === currentTrackIndex);
+      });
+    }
+
+    function simulatePlayback() {
+      const track = tracks[currentTrackIndex];
+      const progressBar = document.getElementById('progressBar');
+      const currentTimeEl = document.getElementById('currentTime');
+      const progressFill = document.getElementById('progressFill');
+
+      if (isPlaying) {
+        const interval = setInterval(() => {
+          if (!isPlaying) {
+            clearInterval(interval);
+            return;
+          }
+
+          currentTime += 0.1;
+          const percentage = (currentTime / track.duration) * 100;
+          progressFill.style.width = percentage + '%';
+          currentTimeEl.textContent = formatTime(currentTime);
+
+          if (currentTime >= track.duration) {
+            clearInterval(interval);
+            nextTrack();
+            if (isPlaying) simulatePlayback();
+          }
+        }, 100);
+      }
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // PROGRESS BAR CLICK
+    document.addEventListener('DOMContentLoaded', () => {
+      const progressBar = document.getElementById('progressBar');
+      progressBar.addEventListener('click', (e) => {
+        const rect = progressBar.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        currentTime = percent * tracks[currentTrackIndex].duration;
+        updateTrackDisplay();
+      });
+    });
+
+    // PLAYLIST FUNCTIONS
+    function removeTrack(index) {
+      tracks.splice(index, 1);
+      if (currentTrackIndex >= tracks.length) {
+        currentTrackIndex = Math.max(0, tracks.length - 1);
+      }
+      renderPlaylist();
+      updateTrackDisplay();
+    }
+
+    function renderPlaylist() {
+      const playlist = document.getElementById('playlist');
+      playlist.innerHTML = tracks.map((track, i) => `
+        <div class="track-item ${i === currentTrackIndex ? 'active' : ''}" onclick="playTrack(${i})">
+          <div class="track-number">${i + 1}</div>
+          <div class="track-details">
+            <p class="track-name">${track.title}</p>
+            <p class="track-artist">${track.artist}</p>
+          </div>
+          <div class="track-duration">${formatTime(track.duration)}</div>
+          <div class="track-actions">
+            <button class="track-action-btn" onclick="removeTrack(${i})" title="Entfernen">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // MODAL FUNCTIONS
+    function openAddSongModal() {
+      document.getElementById('addSongModal').classList.add('active');
+    }
+
+    function closeAddSongModal() {
+      document.getElementById('addSongModal').classList.remove('active');
+      document.getElementById('songName').value = '';
+      document.getElementById('artistName').value = '';
+      document.getElementById('songDuration').value = '3:45';
+    }
+
+    function addNewSong(event) {
+      event.preventDefault();
+      const name = document.getElementById('songName').value;
+      const artist = document.getElementById('artistName').value;
+      const duration = document.getElementById('songDuration').value;
+
+      const [mins, secs] = duration.split(':').map(Number);
+      const totalSeconds = mins * 60 + secs;
+
+      tracks.push({
+        title: name,
+        artist: artist,
+        duration: totalSeconds
+      });
+
+      renderPlaylist();
+      closeAddSongModal();
+      
+      // Visual feedback
+      showNotification(`✅ "${name}" hinzugefügt!`);
+    }
+
+    // UI FUNCTIONS
+    function connectVoice() {
+      showNotification('📞 Mit Voice Channel verbunden!');
+    }
+
+    function toggleVolume() {
+      showNotification('🔊 Lautstärke: 80%');
+    }
+
+    function shareActivity() {
+      showNotification('📤 Activity wurde geteilt! Freunde können jetzt beitreten.');
+    }
+
+    function toggleTheme() {
+      document.documentElement.style.colorScheme = 
+        document.documentElement.style.colorScheme === 'light' ? 'dark' : 'light';
+    }
+
+    function showNotification(message) {
+      const notif = document.createElement('div');
+      notif.textContent = message;
+      notif.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 240, 216, 0.2);
+        border: 1px solid rgba(0, 240, 216, 0.5);
+        color: #00f0d8;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        z-index: 2000;
+        animation: slideIn 300ms ease;
+      `;
+      document.body.appendChild(notif);
+      setTimeout(() => notif.remove(), 3000);
+    }
+
+    // Initialize
+    updateTrackDisplay();
+  </script>
+</body>
+</html>
