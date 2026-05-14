@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SpotyCore - Discord Music Activity</title>
+  <script src="https://cdn.jsdelivr.net/npm/discord-sdk@1.6.0/dist/discord.js"></script>
   <style>
     :root {
       color-scheme: dark;
@@ -301,7 +302,7 @@
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--cyan), var(--green));
-      width: 35%;
+      width: 0%;
       transition: width 100ms linear;
     }
 
@@ -435,27 +436,12 @@
       font-size: 0.85rem;
     }
 
-    .connect-btn {
-      width: 100%;
-      padding: 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(98, 255, 235, 0.18);
-      background: rgba(0, 240, 216, 0.14);
-      color: #e8ffff;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 180ms ease;
-    }
-
-    .connect-btn:hover {
-      background: rgba(0, 240, 216, 0.24);
-      box-shadow: 0 8px 24px rgba(0, 240, 216, 0.2);
-    }
-
     .users-list {
       display: flex;
       flex-direction: column;
       gap: 12px;
+      max-height: 300px;
+      overflow-y: auto;
     }
 
     .user-item {
@@ -537,37 +523,12 @@
       stroke-width: 2;
     }
 
-    .add-song-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      border-radius: 999px;
-      border: 1px solid rgba(98, 255, 235, 0.18);
-      background: rgba(0, 240, 216, 0.14);
-      color: #e8ffff;
-      cursor: pointer;
-      transition: all 180ms ease;
-      font-weight: 600;
-    }
-
-    .add-song-btn:hover {
-      background: rgba(0, 240, 216, 0.24);
-      box-shadow: 0 8px 24px rgba(0, 240, 216, 0.2);
-    }
-
-    .add-song-btn svg {
-      width: 16px;
-      height: 16px;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 2;
-    }
-
     .playlist {
       display: flex;
       flex-direction: column;
       gap: 12px;
+      max-height: 500px;
+      overflow-y: auto;
     }
 
     .track-item {
@@ -591,6 +552,17 @@
     .track-item.active {
       background: rgba(0, 240, 216, 0.12);
       border-color: rgba(98, 255, 235, 0.3);
+    }
+
+    .track-item.playing::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--cyan), var(--green));
+      border-radius: 16px 0 0 16px;
     }
 
     .track-number {
@@ -662,121 +634,6 @@
       stroke-width: 2;
     }
 
-    /* MODAL */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--surface-strong);
-      border: 1px solid rgba(98, 255, 235, 0.18);
-      border-radius: 28px;
-      padding: 32px;
-      max-width: 500px;
-      width: 100%;
-      box-shadow: var(--shadow);
-    }
-
-    .modal-content h2 {
-      margin: 0 0 24px;
-      font-size: 1.5rem;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .modal-content h2 svg {
-      width: 24px;
-      height: 24px;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 2;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .form-group label {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .form-group input {
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 1px solid rgba(98, 255, 235, 0.18);
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      font-size: 1rem;
-      transition: all 180ms ease;
-    }
-
-    .form-group input:focus {
-      outline: none;
-      border-color: var(--cyan);
-      background: rgba(0, 240, 216, 0.1);
-      box-shadow: 0 0 12px rgba(0, 240, 216, 0.2);
-    }
-
-    .form-group input::placeholder {
-      color: var(--muted);
-    }
-
-    .modal-buttons {
-      display: flex;
-      gap: 12px;
-      margin-top: 24px;
-    }
-
-    .modal-buttons button {
-      flex: 1;
-      padding: 12px 20px;
-      border-radius: 12px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 180ms ease;
-      font-size: 1rem;
-    }
-
-    .modal-buttons .btn-submit {
-      background: linear-gradient(135deg, var(--cyan), var(--green));
-      color: #000;
-    }
-
-    .modal-buttons .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(0, 240, 216, 0.3);
-    }
-
-    .modal-buttons .btn-cancel {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text);
-      border: 1px solid rgba(98, 255, 235, 0.18);
-    }
-
-    .modal-buttons .btn-cancel:hover {
-      background: rgba(255, 255, 255, 0.12);
-    }
-
     /* FOOTER */
     footer {
       padding: 28px 0 12px;
@@ -789,6 +646,13 @@
       font-size: 0.95rem;
       text-align: center;
       width: 100%;
+    }
+
+    .loading {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 20px;
     }
 
     /* RESPONSIVE */
@@ -818,15 +682,6 @@
         order: 3;
         flex-basis: 100%;
         max-width: none;
-      }
-
-      .nav {
-        justify-content: flex-start;
-      }
-
-      .section-heading {
-        flex-direction: column;
-        align-items: flex-start;
       }
 
       .track-item {
@@ -862,10 +717,6 @@
       .song-title {
         font-size: 1.4rem;
       }
-
-      .modal-content {
-        padding: 24px;
-      }
     }
   </style>
 </head>
@@ -898,13 +749,6 @@
             <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
             <polyline points="16 6 12 2 8 6"></polyline>
             <line x1="12" y1="2" x2="12" y2="15"></line>
-          </svg>
-        </button>
-        <button class="icon-btn" onclick="openSettings()" title="Einstellungen">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="1"></circle>
-            <circle cx="19" cy="12" r="1"></circle>
-            <circle cx="5" cy="12" r="1"></circle>
           </svg>
         </button>
       </nav>
@@ -967,32 +811,12 @@
           <h3>
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M23 7v10c0 1.1-.9 2-2 2h-1v2h-2v-2h-4v2h-2v-2H8v2H6v-2H5c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2z"></path>
-              <rect x="5" y="9" width="14" height="8" rx="1"></rect>
             </svg>
-            Voice Channel
+            Online (<span id="userCount">0</span>)
           </h3>
-          <div class="voice-status">
-            <div class="voice-indicator"></div>
-            <div class="voice-text">
-              <strong>Aktiv</strong>
-              <span>Discord Server</span>
-            </div>
+          <div class="users-list" id="usersList">
+            <div class="loading">Lade Benutzer...</div>
           </div>
-          <button class="connect-btn" onclick="connectVoice()">Beitreten</button>
-        </div>
-
-        <!-- Online Users -->
-        <div class="sidebar-card">
-          <h3>
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            Online
-          </h3>
-          <div class="users-list" id="usersList"></div>
         </div>
       </div>
     </section>
@@ -1009,119 +833,120 @@
           </svg>
           Queue
         </h2>
-        <button class="add-song-btn" onclick="openAddSongModal()">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Song hinzufügen
-        </button>
       </div>
 
       <div class="playlist" id="playlist">
-        <div style="text-align: center; padding: 40px 20px; color: var(--muted);">
-          <p>Keine Songs in der Queue. Nutze die Suchleiste um einen Song hinzuzufügen!</p>
-        </div>
+        <div class="loading">Lade Playlist...</div>
       </div>
     </section>
 
-    <!-- MODAL FOR ADDING SONGS -->
-    <div class="modal" id="addSongModal">
-      <div class="modal-content">
-        <h2>
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="14" r="5"></circle>
-            <path d="M12 14v-5"></path>
-          </svg>
-          Song hinzufügen
-        </h2>
-        <form onsubmit="addNewSong(event)">
-          <div class="form-group">
-            <label for="songName">Titel</label>
-            <input type="text" id="songName" placeholder="z.B. Blinding Lights" required>
-          </div>
-          <div class="form-group">
-            <label for="artistName">Künstler</label>
-            <input type="text" id="artistName" placeholder="z.B. The Weeknd" required>
-          </div>
-          <div class="form-group">
-            <label for="songDuration">Dauer (MM:SS)</label>
-            <input type="text" id="songDuration" placeholder="z.B. 3:20" value="3:45" required>
-          </div>
-          <div class="modal-buttons">
-            <button type="submit" class="btn-submit">Hinzufügen</button>
-            <button type="button" class="btn-cancel" onclick="closeAddSongModal()">Abbrechen</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
     <!-- FOOTER -->
     <footer>
-      <span>SpotyCore</span>
-      <span>Discord Music Activity</span>
+      <span>SpotyCore - Discord Music Activity</span>
+      <span id="footerInfo">Verbinde dich...</span>
     </footer>
   </main>
 
   <script>
-    // ===== STATE & DATA =====
+    // ===== DISCORD SDK INITIALIZATION =====
+    let discordUser = null;
+    let discordGuild = null;
+    let playlist = [];
     let currentTrackIndex = -1;
     let isPlaying = false;
     let currentTime = 0;
     let playbackInterval = null;
 
-    // Musik Datenbank (Mock API)
-    const musicDatabase = [
-      { title: 'Blinding Lights', artist: 'The Weeknd', duration: 200 },
-      { title: 'Shape of You', artist: 'Ed Sheeran', duration: 234 },
-      { title: 'Someone Like You', artist: 'Adele', duration: 285 },
-      { title: 'Perfect', artist: 'Ed Sheeran', duration: 263 },
-      { title: 'Uptown Funk', artist: 'Mark Ronson ft. Bruno Mars', duration: 269 },
-      { title: 'Bohemian Rhapsody', artist: 'Queen', duration: 354 },
-      { title: 'Stairway to Heaven', artist: 'Led Zeppelin', duration: 482 },
-      { title: 'Hotel California', artist: 'Eagles', duration: 391 },
-      { title: 'Imagine', artist: 'John Lennon', duration: 183 },
-      { title: 'Like a Rolling Stone', artist: 'Bob Dylan', duration: 369 },
-      { title: 'Sweet Home Alabama', artist: 'Lynyrd Skynyrd', duration: 179 },
-      { title: 'Hey Jude', artist: 'The Beatles', duration: 427 },
-    ];
+    // Initialize Discord SDK
+    async function initializeDiscord() {
+      try {
+        await window.DiscordSDK.ready();
+        const user = await window.DiscordSDK.user.getUser();
+        discordUser = user;
+        console.log('Discord User:', user);
+        
+        // Get guild/server info
+        const guild = await window.DiscordSDK.guild.getGuild();
+        discordGuild = guild;
+        
+        // Load users
+        loadOnlineUsers();
+        
+        // Load music data (beispiel)
+        loadPlaylist();
+        
+        document.getElementById('footerInfo').textContent = `Angemeldet als ${user.username}`;
+      } catch (error) {
+        console.error('Discord SDK Error:', error);
+        // Fallback für Development/Testing
+        document.getElementById('footerInfo').textContent = 'Development Mode';
+      }
+    }
 
-    let playlist = [];
-    let onlineUsers = [];
+    // ===== API: PLAYLIST LADEN =====
+    async function loadPlaylist() {
+      try {
+        // Beispiel: API-Aufruf zur Musik-Datenbank
+        // const response = await fetch('https://api.example.com/playlist');
+        // const data = await response.json();
+        
+        // Mock-Daten (ersetze mit echtem API-Aufruf)
+        const mockPlaylist = [
+          { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', duration: 200, url: 'https://...' },
+          { id: 2, title: 'Shape of You', artist: 'Ed Sheeran', duration: 234, url: 'https://...' },
+          { id: 3, title: 'Levitating', artist: 'Dua Lipa', duration: 203, url: 'https://...' },
+        ];
+        
+        playlist = mockPlaylist;
+        renderPlaylist();
+      } catch (error) {
+        console.error('Error loading playlist:', error);
+      }
+    }
 
-    // ===== SEARCH FUNCTIONALITY =====
-    document.getElementById('searchInput').addEventListener('input', (e) => {
+    // ===== API: SONGS SUCHEN =====
+    document.getElementById('searchInput').addEventListener('input', debounce(async (e) => {
       const query = e.target.value.toLowerCase().trim();
       const resultsContainer = document.getElementById('searchResults');
 
-      if (query.length === 0) {
+      if (query.length < 1) {
         resultsContainer.classList.remove('active');
         return;
       }
 
-      const results = musicDatabase.filter(track =>
-        track.title.toLowerCase().includes(query) ||
-        track.artist.toLowerCase().includes(query)
-      );
+      try {
+        // API-Aufruf für Suche
+        // const response = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track`);
+        // const data = await response.json();
+        
+        // Mock-Daten
+        const mockResults = [
+          { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', duration: 200 },
+          { id: 2, title: 'Levitating', artist: 'Dua Lipa', duration: 203 },
+          { id: 3, title: 'As It Was', artist: 'Harry Styles', duration: 172 },
+        ].filter(t => t.title.toLowerCase().includes(query) || t.artist.toLowerCase().includes(query));
 
-      if (results.length === 0) {
-        resultsContainer.innerHTML = '<div class="search-result-item" style="justify-content: center; cursor: default; color: var(--muted);">Keine Ergebnisse gefunden</div>';
-        resultsContainer.classList.add('active');
-        return;
-      }
+        if (mockResults.length === 0) {
+          resultsContainer.innerHTML = '<div class="search-result-item" style="justify-content: center; cursor: default; color: var(--muted);">Keine Ergebnisse</div>';
+          resultsContainer.classList.add('active');
+          return;
+        }
 
-      resultsContainer.innerHTML = results.map((track, idx) => `
-        <div class="search-result-item">
-          <div class="search-result-info">
-            <p class="search-result-title">${track.title}</p>
-            <p class="search-result-artist">${track.artist}</p>
+        resultsContainer.innerHTML = mockResults.map((track, idx) => `
+          <div class="search-result-item">
+            <div class="search-result-info">
+              <p class="search-result-title">${track.title}</p>
+              <p class="search-result-artist">${track.artist}</p>
+            </div>
+            <button class="search-result-add" onclick="addTrackToPlaylist({title: '${track.title}', artist: '${track.artist}', duration: ${track.duration}})">+ Zur Queue</button>
           </div>
-          <button class="search-result-add" onclick="addTrackFromSearch(${idx})">+ Zur Queue</button>
-        </div>
-      `).join('');
+        `).join('');
 
-      resultsContainer.classList.add('active');
-    });
+        resultsContainer.classList.add('active');
+      } catch (error) {
+        console.error('Search error:', error);
+      }
+    }, 300));
 
     // Close search on outside click
     document.addEventListener('click', (e) => {
@@ -1130,8 +955,21 @@
       }
     });
 
-    function addTrackFromSearch(dbIndex) {
-      const track = musicDatabase[dbIndex];
+    // ===== DEBOUNCE HELPER =====
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // ===== PLAYLIST MANAGEMENT =====
+    function addTrackToPlaylist(track) {
       playlist.push(track);
       document.getElementById('searchInput').value = '';
       document.getElementById('searchResults').classList.remove('active');
@@ -1142,7 +980,56 @@
       }
     }
 
-    // ===== PLAYER FUNCTIONS =====
+    function renderPlaylist() {
+      const playlistEl = document.getElementById('playlist');
+      
+      if (playlist.length === 0) {
+        playlistEl.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: var(--muted);"><p>Queue leer. Suche nach Songs!</p></div>';
+        return;
+      }
+
+      playlistEl.innerHTML = playlist.map((track, i) => `
+        <div class="track-item ${i === currentTrackIndex ? 'active' : ''}" onclick="playTrack(${i})">
+          <div class="track-number">${i + 1}</div>
+          <div class="track-details">
+            <p class="track-name">${track.title}</p>
+            <p class="track-artist">${track.artist}</p>
+          </div>
+          <div class="track-duration">${formatTime(track.duration)}</div>
+          <div class="track-actions">
+            <button class="track-action-btn" onclick="removeTrack(${i}, event)">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removeTrack(index, event) {
+      event.stopPropagation();
+      playlist.splice(index, 1);
+      
+      if (currentTrackIndex >= playlist.length && currentTrackIndex > 0) {
+        currentTrackIndex--;
+      }
+      
+      if (playlist.length === 0) {
+        currentTrackIndex = -1;
+        isPlaying = false;
+        updatePlayButton();
+        document.getElementById('nowPlayingTitle').textContent = 'Keine Musik';
+        document.getElementById('nowPlayingArtist').textContent = 'Füge einen Song hinzu';
+      } else if (currentTrackIndex < playlist.length && isPlaying) {
+        simulatePlayback();
+      }
+      
+      renderPlaylist();
+    }
+
+    // ===== PLAYBACK CONTROL =====
     function togglePlay() {
       if (playlist.length === 0) {
         alert('Bitte füge zuerst einen Song hinzu!');
@@ -1166,6 +1053,16 @@
         '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><polygon points="5 3 19 12 5 21"></polygon></svg>';
     }
 
+    function playTrack(index) {
+      if (playlist.length === 0) return;
+      currentTrackIndex = index;
+      currentTime = 0;
+      isPlaying = true;
+      updatePlayButton();
+      updateTrackDisplay();
+      simulatePlayback();
+    }
+
     function nextTrack() {
       if (playlist.length === 0) return;
       currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
@@ -1180,16 +1077,6 @@
       currentTime = 0;
       updateTrackDisplay();
       if (isPlaying) simulatePlayback();
-    }
-
-    function playTrack(index) {
-      if (playlist.length === 0) return;
-      currentTrackIndex = index;
-      currentTime = 0;
-      isPlaying = true;
-      updatePlayButton();
-      updateTrackDisplay();
-      simulatePlayback();
     }
 
     function updateTrackDisplay() {
@@ -1208,6 +1095,7 @@
     function simulatePlayback() {
       if (playbackInterval) clearInterval(playbackInterval);
 
+      if (!playlist[currentTrackIndex]) return;
       const track = playlist[currentTrackIndex];
       const progressBar = document.getElementById('progressBar');
       const currentTimeEl = document.getElementById('currentTime');
@@ -1250,115 +1138,47 @@
       document.getElementById('currentTime').textContent = formatTime(currentTime);
     });
 
-    // ===== PLAYLIST FUNCTIONS =====
-    function renderPlaylist() {
-      const playlistEl = document.getElementById('playlist');
-      
-      if (playlist.length === 0) {
-        playlistEl.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: var(--muted);"><p>Keine Songs in der Queue. Nutze die Suchleiste um einen Song hinzuzufügen!</p></div>';
-        document.getElementById('userCount').textContent = '0';
-        return;
-      }
+    // ===== ONLINE USERS (Discord Integration) =====
+    async function loadOnlineUsers() {
+      try {
+        const users = await window.DiscordSDK.guild.getGuildMembers();
+        
+        const usersList = document.getElementById('usersList');
+        if (!users || users.length === 0) {
+          usersList.innerHTML = '<div class="loading">Keine Benutzer online</div>';
+          document.getElementById('userCount').textContent = '0';
+          return;
+        }
 
-      playlistEl.innerHTML = playlist.map((track, i) => `
-        <div class="track-item ${i === currentTrackIndex ? 'active' : ''}" onclick="playTrack(${i})">
-          <div class="track-number">${i + 1}</div>
-          <div class="track-details">
-            <p class="track-name">${track.title}</p>
-            <p class="track-artist">${track.artist}</p>
+        document.getElementById('userCount').textContent = users.length;
+        usersList.innerHTML = users.slice(0, 10).map(user => `
+          <div class="user-item">
+            <div class="user-avatar">${user.username.substring(0, 2).toUpperCase()}</div>
+            <div class="user-info">
+              <p class="user-name">${user.username}</p>
+              <p class="user-status">Hört zu</p>
+            </div>
           </div>
-          <div class="track-duration">${formatTime(track.duration)}</div>
-          <div class="track-actions">
-            <button class="track-action-btn" onclick="removeTrack(${i}, event)" title="Entfernen">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function removeTrack(index, event) {
-      event.stopPropagation();
-      playlist.splice(index, 1);
-      
-      if (currentTrackIndex >= playlist.length && currentTrackIndex > 0) {
-        currentTrackIndex--;
-      }
-      
-      if (playlist.length === 0) {
-        currentTrackIndex = -1;
-        isPlaying = false;
-        updatePlayButton();
-        document.getElementById('nowPlayingTitle').textContent = 'Keine Musik';
-        document.getElementById('nowPlayingArtist').textContent = 'Füge einen Song hinzu';
-      } else if (currentTrackIndex < playlist.length && isPlaying) {
-        simulatePlayback();
-      }
-      
-      renderPlaylist();
-    }
-
-    function addNewSong(event) {
-      event.preventDefault();
-      
-      const title = document.getElementById('songName').value.trim();
-      const artist = document.getElementById('artistName').value.trim();
-      const durationStr = document.getElementById('songDuration').value.trim();
-
-      if (!title || !artist || !durationStr) {
-        alert('Bitte alle Felder ausfüllen');
-        return;
-      }
-
-      const [mins, secs] = durationStr.split(':').map(Number);
-      if (isNaN(mins) || isNaN(secs)) {
-        alert('Ungültiges Zeit-Format. Nutze MM:SS');
-        return;
-      }
-
-      const duration = mins * 60 + secs;
-      playlist.push({ title, artist, duration });
-      
-      closeAddSongModal();
-      renderPlaylist();
-      
-      if (currentTrackIndex === -1) {
-        playTrack(0);
+        `).join('');
+      } catch (error) {
+        console.error('Error loading users:', error);
+        document.getElementById('usersList').innerHTML = '<div class="loading">Fehler beim Laden</div>';
       }
     }
 
-    function openAddSongModal() {
-      document.getElementById('addSongModal').classList.add('active');
-      document.getElementById('songName').focus();
-    }
-
-    function closeAddSongModal() {
-      document.getElementById('addSongModal').classList.remove('active');
-      document.getElementById('songName').value = '';
-      document.getElementById('artistName').value = '';
-      document.getElementById('songDuration').value = '3:45';
-    }
-
-    // ===== VOICE & USERS =====
-    function connectVoice() {
-      alert('Mit Voice Channel verbunden! 🎤');
-    }
-
+    // ===== SHARE ACTIVITY =====
     function shareActivity() {
-      alert('Activity geteilt! 📤');
+      if (discordUser && currentTrackIndex !== -1) {
+        const track = playlist[currentTrackIndex];
+        // Discord Activity Sharing
+        alert(`🎵 ${track.title} - ${track.artist}\n\nGeteilt mit deinen Freunden!`);
+      } else {
+        alert('Starte einen Song um zu teilen!');
+      }
     }
 
-    function openSettings() {
-      alert('Einstellungen werden in Kürze verfügbar 🔧');
-    }
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-      renderPlaylist();
-    });
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', initializeDiscord);
   </script>
 </body>
 </html>
