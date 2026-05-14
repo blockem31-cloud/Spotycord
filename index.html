@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpotyCore</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050608;
+      --surface: rgba(10, 14, 20, 0.78);
+      --surface-strong: rgba(15, 20, 30, 0.96);
+      --border: rgba(98, 255, 235, 0.14);
+      --text: #e9f5ff;
+      --muted: #9ab3c9;
+      --cyan: #00f0d8;
+      --cyan-soft: rgba(0, 240, 216, 0.18);
+      --green: #31f26f;
+      --shadow: 0 32px 80px rgba(0, 0, 0, 0.35);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, rgba(0, 240, 216, 0.12), transparent 24%),
+                  radial-gradient(circle at bottom right, rgba(49, 242, 111, 0.08), transparent 18%),
+                  linear-gradient(180deg, #090b0f 0%, #040506 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .page {
+      position: relative;
+      padding: 32px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px 0 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      font-size: 0.85rem;
+      color: #a7f9eb;
+    }
+
+    .brand span {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      box-shadow: 0 0 14px rgba(0, 240, 216, 0.5);
+    }
+
+    .nav {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 180ms ease;
+    }
+
+    .nav a:hover {
+      color: var(--text);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 32px;
+      align-items: center;
+      padding: 24px 0 48px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(3rem, 4vw, 4.5rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 24px 0 32px;
+      max-width: 680px;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .hero .buttons {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .button,
+    .pill {
+      border: 1px solid rgba(98, 255, 235, 0.18);
+      border-radius: 999px;
+      padding: 14px 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .button {
+      background: rgba(0, 240, 216, 0.14);
+      color: #e8ffff;
+      box-shadow: 0 18px 42px rgba(0, 240, 216, 0.12);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 26px 60px rgba(0, 240, 216, 0.18);
+    }
+
+    .pill {
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .meta-card {
+      min-width: 180px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(13, 18, 28, 0.72);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .meta-card strong {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .meta-card span {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 500px;
+      display: grid;
+      place-items: center;
+    }
+
+    .visual-card {
+      width: 100%;
+      max-width: 520px;
+      padding: 28px;
+      border-radius: 32px;
+      border: 1px solid rgba(98, 255, 235, 0.18);
+      background: rgba(9, 12, 18, 0.76);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .visual-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0, 240, 216, 0.08), transparent 40%);
+      pointer-events: none;
+    }
+
+    .visual-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255,255,255,0.04);
+      font-size: 0.9rem;
+    }
+
+    .chip span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, var(--green), #33ff88);
+      box-shadow: 0 0 15px rgba(49, 242, 111, 0.35);
+    }
+
+    .album {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .album strong {
+      font-size: 1.4rem;
+      margin: 0;
+      color: #fff;
+    }
+
+    .album span {
+      color: var(--muted);
+    }
+
+    .equalizer {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      justify-content: center;
+      height: 170px;
+      margin-top: 16px;
+    }
+
+    .bar {
+      width: 12px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--cyan), rgba(0, 255, 222, 0.35));
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .bar:nth-child(1) { animation-delay: 0s; height: 44%; }
+    .bar:nth-child(2) { animation-delay: 0.16s; height: 68%; }
+    .bar:nth-child(3) { animation-delay: 0.3s; height: 52%; }
+    .bar:nth-child(4) { animation-delay: 0.44s; height: 85%; }
+    .bar:nth-child(5) { animation-delay: 0.6s; height: 38%; }
+    .bar:nth-child(6) { animation-delay: 0.76s; height: 72%; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scaleY(0.88); opacity: 0.82; }
+      50% { transform: scaleY(1.18); opacity: 1; }
+    }
+
+    .section {
+      display: grid;
+      gap: 24px;
+      padding: 20px 0 40px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.7;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      padding: 26px;
+      border-radius: 28px;
+      background: rgba(11, 16, 28, 0.82);
+      border: 1px solid rgba(98, 255, 235, 0.12);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 24px 58px rgba(0, 0, 0, 0.22);
+      position: relative;
+      overflow: hidden;
+      min-height: 240px;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(0, 240, 216, 0.08), transparent 22%);
+      pointer-events: none;
+    }
+
+    .card h3 {
+      margin: 0 0 16px;
+      font-size: 1.25rem;
+      color: #e9f5ff;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .status-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(98, 255, 235, 0.1);
+    }
+
+    .status-card .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 14px rgba(49, 242, 111, 0.4);
+      flex-shrink: 0;
+    }
+
+    .status-card strong {
+      font-size: 0.98rem;
+      display: block;
+      color: #fff;
+    }
+
+    .status-card span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    footer {
+      padding: 28px 0 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-visual { min-height: 420px; }
+      .status { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      .page { padding: 22px; }
+      header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div class="brand"><span></span>SpotyCore</div>
+      <nav class="nav">
+        <a href="#features">Features</a>
+        <a href="#community">Community</a>
+        <a href="#live">Live-Status</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="pill">Futuristischer Musik-Hub</p>
+        <h1>Spotify-Magie trifft Discord-Community.</h1>
+        <p>SpotyCore verbindet Streaming, Live-Voice-Chats und KI-gestützte Empfehlungen in einem cyberpunkartigen Interface mit Neon-Akzenten, Glassmorphism und sanften Animationen.</p>
+        <div class="buttons">
+          <a class="button" href="#features">Jetzt entdecken</a>
+          <a class="button" href="#community">Community beitreten</a>
+        </div>
+
+        <div class="hero-meta">
+          <div class="meta-card">
+            <strong>Musik streamen</strong>
+            <span>Playlisten bauen, teilen & gemeinsam hören.</span>
+          </div>
+          <div class="meta-card">
+            <strong>Voice-Community</strong>
+            <span>Private Server, Voice-Chats und Live-Jams.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="visual-card">
+          <div class="visual-top">
+            <div class="chip"><span></span>Live Studio</div>
+            <div class="chip">Gaming x Musik</div>
+          </div>
+
+          <div class="album">
+            <strong>Neon Pulse</strong>
+            <span>Aktueller Track & Community-Stream</span>
+          </div>
+
+          <div class="equalizer">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="section-heading">
+        <div>
+          <h2>Was SpotyCore kann</h2>
+        </div>
+        <p>Eine moderne Plattform für Musiker, Podcaster, Gamer und Community Manager. Stream, soziale Räume und personalisierte Empfehlungen verschmelzen in einem dunklen, neonfarbenen Erlebnis.</p>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <h3>Musik streamen & Playlists</h3>
+          <p>Kuratiere Soundtracks, speichere Lieblingssongs und erstelle dynamische Playlists für Parties, Workouts oder Gaming-Sessions.</p>
+        </article>
+        <article class="card">
+          <h3>Community-Server</h3>
+          <p>Baue eigene Server auf, starte Voice-Chats und tausche dich live mit Freunden aus – direkt neben deinen Lieblings-Playlists.</p>
+        </article>
+        <article class="card">
+          <h3>Live-Hört-Status</h3>
+          <p>Zeige, was gerade läuft. „Hört gerade ...“ verbindet Mitglieder mit Künstlern, Genres und Events in Echtzeit.</p>
+        </article>
+        <article class="card">
+          <h3>Künstler, Podcasts & Events</h3>
+          <p>Entdecke Künstlerprofile, spannende Podcasts und virtuelle Musik-Events mit einem digitalen, atmosphärischen Look.</p>
+        </article>
+        <article class="card">
+          <h3>Gemeinsame Sessions</h3>
+          <p>Spiele Musik synchron für Freunde, chatte live und genieße gemeinsam die gleiche Playlist – als wärst du im selben Raum.</p>
+        </article>
+        <article class="card">
+          <h3>KI-Empfehlungen</h3>
+          <p>Erhalte personalisierte Musik- und Community-Vorschläge basierend auf Stimmung, Genre und Spielverhalten.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="community" class="section">
+      <div class="section-heading">
+        <div>
+          <h2>Community & Voice</h2>
+        </div>
+        <p>SpotyCore ist mehr als eine Musik-App: Es ist ein sozialer Raum für Gamer, Musikfans und Creator, in dem Musik und Gespräche miteinander verschmelzen.</p>
+      </div>
+
+      <div class="status">
+        <div class="status-card">
+          <div class="dot"></div>
+          <div>
+            <strong>Voice-Channel aktiv</strong>
+            <span>4 Räume live, inklusive 2 Gaming-Streams.</span>
+          </div>
+        </div>
+        <div class="status-card">
+          <div class="dot"></div>
+          <div>
+            <strong>Jetzt online</strong>
+            <span>Community mit echten Fans und DJ-Sessions.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="live" class="section">
+      <div class="section-heading">
+        <div>
+          <h2>Live-Atmosphäre</h2>
+        </div>
+        <p>Das Interface bleibt ruhig und fokussiert, aber dank Neon-Glühen und subtilen Effekten wirkt es jederzeit lebendig. Ideal für Nachtmodus und digitale Events.</p>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <h3>Glasige Oberfläche</h3>
+          <p>Glassmorphism-Effekte und holografische Akzente sorgen für Tiefe, ohne die Übersicht zu verlieren.</p>
+        </article>
+        <article class="card">
+          <h3>Cyberpunk Vibes</h3>
+          <p>Türkis-neonfarbene UI-Elemente, dunkle Hintergründe und grüne Live-Indikatoren schaffen die richtige Stimmung.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer>
+      <span>SpotyCore — Musik, Community & Gaming vereint.</span>
+      <span>Made for Musikfans, Gamer und digitale Communities.</span>
+    </footer>
+  </main>
+</body>
+</html>
